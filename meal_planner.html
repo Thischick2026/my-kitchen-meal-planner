@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Kitchen · Meal Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #faf6ef;
+    --warm-white: #fffcf7;
+    --sage: #7a9e7e;
+    --sage-light: #b5ceb8;
+    --sage-dark: #4a6e4e;
+    --terracotta: #c4714a;
+    --terracotta-light: #e8a882;
+    --gold: #c9a84c;
+    --ink: #2a2420;
+    --ink-soft: #5a4e48;
+    --ink-faint: #9a8e88;
+    --safe-green: #4a7c59;
+    --caution-amber: #c4884a;
+    --danger-red: #b84040;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .header-left { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  header h1 { font-family: 'Fraunces', serif; font-weight: 300; font-size: 1.8rem; letter-spacing: -0.02em; }
+  header h1 span { color: var(--terracotta-light); font-style: italic; }
+  header p { font-size: 0.82rem; color: var(--ink-faint); font-weight: 300; }
+  .header-btns { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+  .header-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--cream);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  .header-btn:hover { background: rgba(255,255,255,0.18); }
+
+  /* ── SETUP FLOW ── */
+  #upload-section { padding: 48px 24px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+  .setup-card {
+    width: 100%; max-width: 480px;
+    border: 2px solid #e8e0d8;
+    border-radius: 16px; padding: 36px 32px;
+    text-align: center;
+    background: var(--warm-white);
+  }
+  .setup-card .icon { font-size: 2.5rem; margin-bottom: 12px; display: block; }
+  .setup-card h2 { font-family: 'Fraunces', serif; font-weight: 300; font-size: 1.4rem; margin-bottom: 8px; }
+  .setup-card p { color: var(--ink-soft); font-size: 0.9rem; line-height: 1.5; }
+  .setup-error {
+    display: none; margin-top: 12px;
+    background: #fdf0f0; border: 1.5px solid #e0a0a0;
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 0.82rem; color: #b03030;
+    line-height: 1.6; white-space: pre-wrap; text-align: left;
+  }
+  #setup-steps { display: flex; gap: 8px; align-items: center; }
+  .step-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #ddd; color: #999; font-size: 0.8rem; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s;
+  }
+  .step-dot.active { background: var(--terracotta); color: white; }
+  .step-dot.done { background: var(--sage); color: white; }
+
+  /* Spice upload zone */
+  #spice-drop-zone {
+    width: 100%; max-width: 480px;
+    border: 2px dashed var(--gold);
+    border-radius: 16px; padding: 28px 32px;
+    text-align: center; cursor: pointer;
+    background: var(--warm-white); transition: all 0.2s;
+  }
+  #spice-drop-zone:hover, #spice-drop-zone.dragover { border-color: #a07830; background: #fdf8ee; }
+  #spice-drop-zone .icon { font-size: 1.8rem; margin-bottom: 8px; display: block; }
+  #spice-drop-zone h2 { font-family: 'Fraunces', serif; font-weight: 300; font-size: 1.1rem; margin-bottom: 6px; color: var(--ink); }
+  #spice-drop-zone p { color: var(--ink-soft); font-size: 0.82rem; }
+  #spice-drop-zone label {
+    display: inline-block; margin-top: 12px; padding: 8px 20px;
+    background: var(--gold); color: white; border-radius: 8px;
+    cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: background 0.2s;
+  }
+  #spice-drop-zone label:hover { background: #a07830; }
+  #spice-drop-zone.loaded { border-color: var(--gold); background: #fdf8ee; }
+
+  /* Spice loaded badge in sidebar */
+  .spice-badge {
+    display: none;
+    background: rgba(201,168,76,0.15);
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    color: var(--gold);
+    text-align: center;
+  }
+  .spice-badge.visible { display: block; }
+
+  /* ── MODALS ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(42,36,32,0.75); z-index: 100;
+    align-items: center; justify-content: center; padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--warm-white); border-radius: 20px;
+    padding: 28px 24px; width: 100%; max-width: 520px;
+    max-height: 92vh; overflow-y: auto;
+  }
+  .modal h2 { font-family: 'Fraunces', serif; font-weight: 300; font-size: 1.5rem; margin-bottom: 6px; }
+  .modal h2 em { color: var(--terracotta); font-style: italic; }
+  .modal-sub { font-size: 0.83rem; color: var(--ink-faint); margin-bottom: 20px; line-height: 1.5; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block; font-size: 0.78rem; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--ink-faint); margin-bottom: 6px; font-weight: 500;
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 10px 14px; border: 1.5px solid #ddd;
+    border-radius: 10px; font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; color: var(--ink); background: white; transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--sage); }
+  .form-group textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .checkbox-group { display: flex; flex-direction: column; gap: 8px; }
+  .checkbox-item {
+    display: flex; align-items: center; gap: 10px; font-size: 0.88rem;
+    cursor: pointer; padding: 8px 12px; border-radius: 8px;
+    border: 1.5px solid #eee; background: white; transition: all 0.15s;
+  }
+  .checkbox-item:hover { border-color: var(--sage-light); }
+  .checkbox-item input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--sage); flex-shrink: 0; }
+  .checkbox-item.checked { border-color: var(--sage); background: #f0f7f1; }
+
+  .modal-btns { display: flex; gap: 10px; margin-top: 24px; }
+  .btn-primary {
+    flex: 1; padding: 12px; background: var(--terracotta); color: white;
+    border: none; border-radius: 10px; font-family: 'Fraunces', serif;
+    font-size: 1rem; font-style: italic; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--terracotta-light); color: var(--ink); }
+  .btn-secondary {
+    padding: 12px 18px; background: transparent; color: var(--ink-soft);
+    border: 1.5px solid #ddd; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.88rem; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--ink-soft); }
+
+  /* ── PREP MODAL SPECIFIC ── */
+  .prep-content {
+    font-size: 0.9rem; line-height: 1.7; color: var(--ink-soft);
+    white-space: pre-wrap;
+  }
+  .prep-spinner {
+    width: 28px; height: 28px;
+    border: 3px solid #eee; border-top-color: var(--sage);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+    margin: 20px auto;
+  }
+  .prep-meal-title {
+    font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 600;
+    color: var(--ink); margin-bottom: 16px; padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+  }
+
+  /* ── FAVOURITES MODAL ── */
+  .fav-list { display: flex; flex-direction: column; gap: 12px; max-height: 60vh; overflow-y: auto; }
+  .fav-item {
+    background: var(--cream); border-radius: 12px; padding: 14px 16px;
+    border: 1px solid #e8e0d8;
+  }
+  .fav-item-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; gap: 8px;
+  }
+  .fav-item-name {
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 0.95rem;
+    flex: 1;
+  }
+  .fav-item-meta { font-size: 0.75rem; color: var(--ink-faint); }
+  .fav-item-foods { font-size: 0.8rem; color: var(--ink-soft); line-height: 1.5; }
+  .fav-delete {
+    background: none; border: none; color: var(--ink-faint);
+    cursor: pointer; font-size: 1rem; padding: 2px 6px; border-radius: 4px;
+    transition: color 0.15s;
+    flex-shrink: 0;
+  }
+  .fav-delete:hover { color: var(--danger-red); }
+  .fav-empty { text-align: center; padding: 40px 20px; color: var(--ink-faint); font-size: 0.88rem; }
+  .fav-empty .big { font-size: 2.5rem; margin-bottom: 10px; }
+
+  /* ── MAIN APP ── */
+  #app { display: none; }
+  .app-grid { display: grid; grid-template-columns: 260px 1fr; min-height: calc(100vh - 72px); }
+
+  /* ── SIDEBAR ── */
+  .sidebar { background: var(--ink); color: var(--cream); padding: 20px; display: flex; flex-direction: column; gap: 18px; }
+  .sidebar-section h3 {
+    font-family: 'Fraunces', serif; font-weight: 300; font-size: 0.72rem;
+    text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-faint); margin-bottom: 10px;
+  }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-box { background: rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; text-align: center; }
+  .stat-box .num { font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 600; color: var(--terracotta-light); display: block; }
+  .stat-box .lbl { font-size: 0.68rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .meal-buttons { display: flex; flex-direction: column; gap: 6px; }
+  .meal-btn {
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; padding: 10px 14px; color: var(--cream); cursor: pointer;
+    text-align: left; font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+    transition: all 0.15s; display: flex; align-items: center; gap: 10px;
+  }
+  .meal-btn:hover { background: rgba(255,255,255,0.12); }
+  .meal-btn.active { background: var(--sage-dark); border-color: var(--sage); }
+  .meal-btn .emoji { font-size: 1.1rem; }
+
+  .generate-btn {
+    width: 100%; padding: 14px; background: var(--terracotta); color: white;
+    border: none; border-radius: 10px; font-family: 'Fraunces', serif;
+    font-size: 1.05rem; font-weight: 300; font-style: italic; cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .generate-btn:hover { background: var(--terracotta-light); color: var(--ink); }
+  .generate-btn:active { transform: scale(0.98); }
+  .generate-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .legend { display: flex; flex-direction: column; gap: 5px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--ink-faint); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── MAIN CONTENT ── */
+  .main-content { background: var(--cream); padding: 24px; overflow-y: auto; }
+
+  /* ── AI THINKING ── */
+  .ai-thinking {
+    display: none; background: var(--warm-white); border: 1px solid #e8e0d8;
+    border-radius: 16px; padding: 24px; margin-bottom: 20px; text-align: center;
+  }
+  .ai-thinking.visible { display: block; }
+  .thinking-spinner {
+    width: 32px; height: 32px; border: 3px solid #eee; border-top-color: var(--terracotta);
+    border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .thinking-text { font-size: 0.9rem; color: var(--ink-soft); }
+  .thinking-text em { color: var(--terracotta); font-style: italic; }
+
+  /* ── AI CONTEXT BOX ── */
+  .ai-context {
+    display: none; background: #f0f7f1; border: 1px solid var(--sage-light);
+    border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;
+    font-size: 0.85rem; color: var(--sage-dark); line-height: 1.65;
+  }
+  .ai-context.visible { display: block; }
+  .ai-context strong {
+    font-weight: 500; display: block; margin-bottom: 4px;
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+
+  /* ── BENTO TRAY ── */
+  #plate-area { display: none; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+  #plate-area.visible { display: flex; }
+
+  .plate-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px;
+  }
+  .plate-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); }
+
+  /* Action buttons below the label */
+  .plate-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .plate-action-btn {
+    padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all 0.15s; border: 1.5px solid; white-space: nowrap;
+  }
+  .btn-save-fav {
+    background: #fff8f0; border-color: var(--terracotta-light); color: var(--terracotta);
+  }
+  .btn-save-fav:hover { background: var(--terracotta); color: white; border-color: var(--terracotta); }
+  .btn-save-fav.saved { background: #e8f4eb; border-color: var(--sage); color: var(--sage-dark); }
+  .btn-how-to-make {
+    background: #f0f7f1; border-color: var(--sage-light); color: var(--sage-dark);
+  }
+  .btn-how-to-make:hover { background: var(--sage); color: white; border-color: var(--sage); }
+  .btn-how-to-make:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .tray-shell {
+    background: var(--warm-white); border: 2px solid #c8bfb5;
+    border-radius: 16px; padding: 10px;
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.06), 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .tray-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .bento-slot {
+    background: #f5f0ea; border-radius: 10px; padding: 14px 10px;
+    border: 2px dashed #ddd; min-height: 120px; display: flex;
+    flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; position: relative; transition: all 0.3s ease;
+  }
+  .bento-slot.slot-main { grid-column: span 2; min-height: 100px; }
+  .bento-slot.filled {
+    border-style: solid; border-color: transparent;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07); animation: popIn 0.3s ease;
+  }
+  @keyframes popIn { 0% { transform: scale(0.94); opacity:0; } 100% { transform: scale(1); opacity:1; } }
+
+  .slot-icon { font-size: 1.5rem; margin-bottom: 5px; }
+  .slot-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); margin-bottom: 5px; }
+  .slot-name { font-family: 'Fraunces', serif; font-size: 0.85rem; font-weight: 600; color: var(--ink); line-height: 1.3; margin-bottom: 3px; }
+  .slot-serving { font-size: 0.7rem; color: var(--ink-soft); }
+  .slot-fat { font-size: 0.68rem; margin-top: 3px; color: var(--ink-faint); }
+
+  .safety-badge {
+    position: absolute; top: 7px; right: 7px; font-size: 0.58rem;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 2px 6px; border-radius: 4px; font-weight: 500;
+  }
+  .safe-badge { background: #e8f4eb; color: var(--safe-green); }
+  .caution-badge { background: #fdf0e4; color: var(--caution-amber); }
+
+  /* Meal totals */
+  .meal-totals {
+    background: var(--warm-white); border-radius: 12px; padding: 16px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; border: 1px solid #e8e0d8;
+  }
+  .total-item { text-align: center; }
+  .total-item .val { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 600; display: block; }
+  .total-item .lbl { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
+  .fat-warn { color: var(--danger-red) !important; }
+  .fat-ok { color: var(--safe-green) !important; }
+
+  /* ── INVENTORY ── */
+  #inventory-section { margin-top: 8px; }
+  .section-title {
+    font-family: 'Fraunces', serif; font-weight: 300; font-size: 1.2rem;
+    color: var(--ink); margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+  }
+  .section-title small { font-size: 0.72rem; color: var(--ink-faint); font-family: 'DM Sans', sans-serif; font-weight: 400; }
+
+  .search-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .search-box {
+    flex: 1; min-width: 150px; padding: 9px 14px; border: 1px solid #ddd;
+    border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+    background: var(--warm-white); color: var(--ink);
+  }
+  .search-box:focus { outline: none; border-color: var(--sage); }
+  .cat-filter {
+    padding: 9px 10px; border: 1px solid #ddd; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
+    background: var(--warm-white); color: var(--ink); cursor: pointer;
+  }
+
+  .inv-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .inv-table th {
+    text-align: left; padding: 8px 8px; font-size: 0.65rem; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--ink-faint); border-bottom: 1px solid #e0d8d0;
+    cursor: pointer; white-space: nowrap; user-select: none;
+  }
+  .inv-table th:hover { color: var(--ink); }
+  .inv-table td { padding: 8px 8px; border-bottom: 1px solid #f0ebe4; vertical-align: middle; }
+  .inv-table tr:hover td { background: rgba(122,158,126,0.06); }
+  .cat-pill {
+    display: inline-block; padding: 2px 7px; border-radius: 12px;
+    font-size: 0.65rem; font-weight: 500; text-transform: capitalize; white-space: nowrap;
+  }
+  .safety-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+  .expired-row td { opacity: 0.5; }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--ink-faint); }
+  .empty-state .big { font-size: 3rem; margin-bottom: 12px; }
+
+  .no-profile-banner {
+    display: none; background: #fdf0e4; border: 1px solid var(--caution-amber);
+    border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;
+    font-size: 0.85rem; color: var(--caution-amber); cursor: pointer;
+  }
+  .no-profile-banner.visible { display: block; }
+
+  /* ── MOBILE ── */
+  @media (max-width: 680px) {
+    .app-grid { grid-template-columns: 1fr; }
+    .sidebar { flex-direction: row; flex-wrap: wrap; padding: 16px; gap: 14px; }
+    .sidebar-section { min-width: 120px; }
+    .main-content { padding: 16px; }
+    .meal-totals { grid-template-columns: repeat(3, 1fr); }
+    .inv-table { font-size: 0.72rem; }
+    .inv-table th, .inv-table td { padding: 6px 5px; }
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     PASTE YOUR ANTHROPIC API KEY BELOW
+     Get yours at: https://console.anthropic.com
+     It looks like: sk-ant-api03-...
+     ══════════════════════════════════════════ -->
+
+<header>
+  <div class="header-left">
+    <h1>My Kitchen <span>· Meal Planner</span></h1>
+    <p id="header-sub">Upload your inventory CSV to begin</p>
+  </div>
+  <div class="header-btns">
+    <button class="header-btn" onclick="openFavourites()">♥ Saved Meals</button>
+    <button class="header-btn" onclick="openProfile()">👤 My Profile</button>
+  </div>
+</header>
+
+<!-- SETUP FLOW -->
+<div id="upload-section">
+
+  <!-- Step indicator -->
+  <div id="setup-steps" style="display:flex;gap:8px;margin-bottom:8px;">
+    <div class="step-dot active" id="dot-1">1</div>
+    <div class="step-dot" id="dot-2">2</div>
+    <div class="step-dot" id="dot-3">3</div>
+  </div>
+
+  <!-- STEP 1: API Key -->
+  <div id="step-1" class="setup-card">
+    <span class="icon">🔑</span>
+    <h2>Your API Key</h2>
+    <p>Enter your Anthropic API key to get started. It will be saved to this browser only.</p>
+    <input type="password" id="setup-api-key" placeholder="sk-ant-api03-..."
+      style="width:100%;margin-top:16px;padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.9rem;color:var(--ink);background:white;">
+    <button onclick="submitApiKey()" style="margin-top:12px;width:100%;padding:12px;background:var(--terracotta);color:white;border:none;border-radius:10px;font-family:'Fraunces',serif;font-size:1rem;font-style:italic;cursor:pointer;">Continue →</button>
+    <div class="setup-error" id="error-1"></div>
+  </div>
+
+  <!-- STEP 2: Food Inventory -->
+  <div id="step-2" class="setup-card" style="display:none">
+    <span class="icon">🥗</span>
+    <h2>Food Inventory</h2>
+    <p>Upload your CSV from the Gallbladder Safe Grocery Tracker.</p>
+    <button onclick="document.getElementById('file-input').click()"
+      style="margin-top:16px;padding:10px 24px;background:var(--sage);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;font-weight:500;font-family:'DM Sans',sans-serif;">
+      Choose CSV file
+    </button>
+    <input type="file" id="file-input" accept=".csv,text/plain,text/*" style="display:none">
+    <div id="step2-progress" style="display:none;margin-top:12px;font-size:0.85rem;color:var(--sage-dark);text-align:center;"></div>
+    <div class="setup-error" id="error-2"></div>
+  </div>
+
+  <!-- STEP 3: Spice Inventory -->
+  <div id="step-3" class="setup-card" style="display:none">
+    <span class="icon">🌿</span>
+    <h2>Spice Inventory</h2>
+    <p>Optional — upload your spice CSV so Claude can suggest seasonings.</p>
+    <button onclick="document.getElementById('spice-file-input').click()"
+      style="margin-top:16px;padding:10px 24px;background:var(--gold);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;font-weight:500;font-family:'DM Sans',sans-serif;">
+      Choose spice CSV
+    </button>
+    <input type="file" id="spice-file-input" accept=".csv,text/plain,text/*" style="display:none">
+    <button onclick="skipSpices()"
+      style="margin-top:10px;padding:10px 24px;background:transparent;color:var(--ink-faint);border:1.5px solid #ddd;border-radius:8px;cursor:pointer;font-size:0.85rem;font-family:'DM Sans',sans-serif;">
+      Skip — no spice inventory
+    </button>
+    <div class="setup-error" id="error-3"></div>
+  </div>
+
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="modal-overlay" id="profile-modal">
+  <div class="modal">
+    <h2>About <em>you</em></h2>
+    <p class="modal-sub">This helps Claude understand your body and health goals so every meal suggestion is genuinely right for you. Saved locally — never shared anywhere.</p>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Age</label>
+        <input type="number" id="p-age" placeholder="e.g. 52" min="18" max="120">
+      </div>
+      <div class="form-group">
+        <label>Sex</label>
+        <select id="p-sex">
+          <option value="">Select...</option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+          <option value="other">Other / prefer not to say</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Height</label>
+        <input type="text" id="p-height" placeholder="e.g. 5ft 5in">
+      </div>
+      <div class="form-group">
+        <label>Weight</label>
+        <input type="text" id="p-weight" placeholder="e.g. 242 lbs">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Health conditions &amp; concerns</label>
+      <div class="checkbox-group" id="conditions-list">
+        <label class="checkbox-item" onclick="this.classList.toggle('checked')">
+          <input type="checkbox" value="no_gallbladder"> No gallbladder (cholecystectomy)
+        </label>
+        <label class="checkbox-item" onclick="this.classList.toggle('checked')">
+          <input type="checkbox" value="menopause"> Menopausal / post-menopausal
+        </label>
+        <label class="checkbox-item" onclick="this.classList.toggle('checked')">
+          <input type="checkbox" value="heart"> Heart attack prevention
+        </label>
+        <label class="checkbox-item" onclick="this.classList.toggle('checked')">
+          <input type="checkbox" value="stroke"> Stroke prevention
+        </label>
+        <label class="checkbox-item" onclick="this.classList.toggle('checked')">
+          <input type="checkbox" value="blood_pressure"> High blood pressure
+        </label>
+        <label class="checkbox-item" onclick="this.classList.toggle('checked')">
+          <input type="checkbox" value="cholesterol"> High cholesterol
+        </label>
+        <label class="checkbox-item" onclick="this.classList.toggle('checked')">
+          <input type="checkbox" value="diabetes_risk"> Blood sugar / diabetes risk
+        </label>
+        <label class="checkbox-item" onclick="this.classList.toggle('checked')">
+          <input type="checkbox" value="weight_loss"> Weight management
+        </label>
+        <label class="checkbox-item" onclick="this.classList.toggle('checked')">
+          <input type="checkbox" value="bone_density"> Bone density / osteoporosis risk
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Anything else Claude should know</label>
+      <textarea id="p-notes" placeholder="e.g. I feel sick often after meals, I have low energy in the mornings, I find it hard to stick to diets..."></textarea>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeProfile()">Cancel</button>
+      <button class="btn-primary" onclick="saveProfile()">Save my profile ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- FAVOURITES MODAL -->
+<div class="modal-overlay" id="fav-modal">
+  <div class="modal">
+    <h2>Saved <em>meals</em></h2>
+    <p class="modal-sub">Your favourite suggestions, saved to this device. Tap the ♥ button on any meal to save it here.</p>
+    <div id="fav-list-container"></div>
+    <div class="modal-btns" style="margin-top:16px">
+      <button class="btn-secondary" onclick="closeFavourites()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- PREP / HOW TO MAKE MODAL -->
+<div class="modal-overlay" id="prep-modal">
+  <div class="modal">
+    <h2>How to <em>make this</em></h2>
+    <p class="modal-sub">Simple, quick preparation using what you have — no complicated techniques.</p>
+    <div id="prep-content-area">
+      <div class="prep-spinner" id="prep-spinner"></div>
+    </div>
+    <div class="modal-btns" style="margin-top:16px">
+      <button class="btn-secondary" onclick="closePrepModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="app-grid">
+
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h3>Your Kitchen</h3>
+        <div class="stats-grid">
+          <div class="stat-box"><span class="num" id="stat-total">0</span><span class="lbl">Items</span></div>
+          <div class="stat-box"><span class="num" id="stat-safe">0</span><span class="lbl">Safe</span></div>
+          <div class="stat-box"><span class="num" id="stat-caution">0</span><span class="lbl">Caution</span></div>
+          <div class="stat-box"><span class="num" id="stat-danger">0</span><span class="lbl">High Fat</span></div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Build a meal for</h3>
+        <div class="meal-buttons">
+          <button class="meal-btn active" data-meal="breakfast"><span class="emoji">🌅</span> Breakfast</button>
+          <button class="meal-btn" data-meal="lunch"><span class="emoji">☀️</span> Lunch</button>
+          <button class="meal-btn" data-meal="dinner"><span class="emoji">🌙</span> Dinner</button>
+          <button class="meal-btn" data-meal="snack"><span class="emoji">🍎</span> Snack</button>
+        </div>
+      </div>
+
+      <button class="generate-btn" id="generate-btn" onclick="generateMeal()">✦ Suggest a meal</button>
+
+      <div class="spice-badge" id="spice-badge">🌿 <span id="spice-count">0</span> spices loaded</div>
+
+      <div class="sidebar-section">
+        <h3>Safety guide</h3>
+        <div class="legend">
+          <div class="legend-item"><div class="dot" style="background:var(--safe-green)"></div> Safe — low fat</div>
+          <div class="legend-item"><div class="dot" style="background:var(--caution-amber)"></div> Caution — moderate fat</div>
+          <div class="legend-item"><div class="dot" style="background:var(--danger-red)"></div> High fat — limit</div>
+        </div>
+      </div>
+
+      <div class="sidebar-section" id="api-key-section">
+        <h3>API Key</h3>
+        <div style="position:relative">
+          <input
+            type="password"
+            id="api-key-input"
+            placeholder="sk-ant-api03-..."
+            oninput="handleApiKeyInput()"
+            style="
+              width:100%; padding:9px 36px 9px 12px;
+              background:rgba(255,255,255,0.07);
+              border:1px solid rgba(255,255,255,0.15);
+              border-radius:8px; color:var(--cream);
+              font-family:'DM Sans',sans-serif; font-size:0.78rem;
+              outline:none; transition:border-color 0.2s;
+            "
+          >
+          <span id="api-key-status" style="
+            position:absolute; right:10px; top:50%;
+            transform:translateY(-50%); font-size:0.75rem;
+          "></span>
+        </div>
+        <p style="font-size:0.68rem;color:var(--ink-faint);margin-top:6px;line-height:1.4;">
+        </p>
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+      <div class="no-profile-banner" id="no-profile-banner" onclick="openProfile()">
+        ⚠️ <strong>Set up your health profile</strong> so Claude can give you genuinely personalised meal suggestions. Tap here to add it.
+      </div>
+
+      <div class="ai-thinking" id="ai-thinking">
+        <div class="thinking-spinner"></div>
+        <p class="thinking-text">Claude is looking at your kitchen and thinking about <em>what's right for you today...</em></p>
+      </div>
+
+      <div class="ai-context" id="ai-context">
+        <strong>Why Claude chose this meal</strong>
+        <span id="ai-context-text"></span>
+      </div>
+
+      <div id="plate-area">
+        <div>
+          <div class="plate-header">
+            <p class="plate-label">Your suggested <span id="plate-meal-label">breakfast</span> tray</p>
+            <div class="plate-actions">
+              <button class="plate-action-btn btn-save-fav" id="btn-save-fav" onclick="saveCurrentMeal()">♥ Save this meal</button>
+              <button class="plate-action-btn btn-how-to-make" id="btn-how-to-make" onclick="openPrepModal()">🍳 How to make this</button>
+            </div>
+          </div>
+          <div class="tray-shell">
+            <div class="tray-cards" id="tray-cards"></div>
+          </div>
+        </div>
+        <div class="meal-totals" id="meal-totals"></div>
+      </div>
+
+      <div id="inventory-section">
+        <div class="section-title">
+          Your <em style="color:var(--terracotta);font-style:italic;font-family:'Fraunces',serif">inventory</em>
+          <small id="inv-count"></small>
+        </div>
+        <div class="search-row">
+          <input type="text" class="search-box" id="search-input" placeholder="Search items..." oninput="filterTable()">
+          <select class="cat-filter" id="cat-select" onchange="filterTable()">
+            <option value="">All categories</option>
+            <option value="grain">Grain</option>
+            <option value="protein">Protein</option>
+            <option value="vegetable">Vegetable</option>
+            <option value="fruit">Fruit</option>
+            <option value="dairy">Dairy</option>
+            <option value="fat">Fat</option>
+            <option value="condiment">Condiment</option>
+            <option value="flavour">Flavour</option>
+            <option value="snack">Snack</option>
+            <option value="beverage">Beverage</option>
+          </select>
+          <select class="cat-filter" id="safety-select" onchange="filterTable()">
+            <option value="">All safety</option>
+            <option value="Safe">Safe</option>
+            <option value="Caution">Caution</option>
+            <option value="Danger">High Fat</option>
+          </select>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="inv-table" id="inv-table">
+            <thead>
+              <tr>
+                <th onclick="sortTable('Name')">Name ↕</th>
+                <th onclick="sortTable('Category')">Category ↕</th>
+                <th onclick="sortTable('Serving')">Serving</th>
+                <th onclick="sortTable('Calories')">Cal ↕</th>
+                <th onclick="sortTable('Fat(g)')">Fat ↕</th>
+                <th onclick="sortTable('Fiber(g)')">Fiber ↕</th>
+                <th onclick="sortTable('Protein(g)')">Protein ↕</th>
+                <th onclick="sortTable('Safety')">Safety ↕</th>
+                <th>Meal Type</th>
+                <th>Best Before</th>
+              </tr>
+            </thead>
+            <tbody id="inv-body"></tbody>
+          </table>
+        </div>
+        <div id="empty-state" class="empty-state" style="display:none">
+          <div class="big">🔍</div>
+          <p>No items match your search</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let allItems = [];
+let allSpices = [];
+let selectedMeal = 'breakfast';
+let sortCol = '', sortDir = 1;
+let currentMeal = null;
+let lastProteinUsed = null;
+const today = new Date();
+
+// ── API KEY (in-memory only, never saved) ──
+let sessionApiKey = '';
+function getApiKey() {
+  return sessionApiKey;
+}
+function handleApiKeyInput() {
+  const val = document.getElementById('api-key-input').value.trim();
+  const status = document.getElementById('api-key-status');
+  if (val.startsWith('sk-ant-') && val.length > 20) {
+    status.textContent = '✓';
+    status.style.color = 'var(--sage-light)';
+  } else if (val.length > 0) {
+    status.textContent = '?';
+    status.style.color = 'var(--caution-amber)';
+  } else {
+    status.textContent = '';
+  }
+}
+function loadSavedApiKey() {
+  // No-op: key is never saved
+}
+
+// ── PROFILE ──
+function getProfile() {
+  try { return JSON.parse(localStorage.getItem('mealPlannerProfile') || 'null'); } catch { return null; }
+}
+function saveProfile() {
+  const conditions = [];
+  document.querySelectorAll('#conditions-list input[type=checkbox]').forEach(cb => {
+    if (cb.checked) conditions.push(cb.value);
+  });
+  const profile = {
+    age: document.getElementById('p-age').value,
+    sex: document.getElementById('p-sex').value,
+    height: document.getElementById('p-height').value,
+    weight: document.getElementById('p-weight').value,
+    conditions,
+    notes: document.getElementById('p-notes').value,
+  };
+  localStorage.setItem('mealPlannerProfile', JSON.stringify(profile));
+  closeProfile();
+  updateProfileBanner();
+  alert('Profile saved ✓\n\nClaude will use this every time you ask for a meal suggestion.');
+}
+function openProfile() {
+  const p = getProfile();
+  if (p) {
+    document.getElementById('p-age').value = p.age || '';
+    document.getElementById('p-sex').value = p.sex || '';
+    document.getElementById('p-height').value = p.height || '';
+    document.getElementById('p-weight').value = p.weight || '';
+    document.getElementById('p-notes').value = p.notes || '';
+    document.querySelectorAll('#conditions-list input[type=checkbox]').forEach(cb => {
+      cb.checked = (p.conditions || []).includes(cb.value);
+      cb.closest('label').classList.toggle('checked', cb.checked);
+    });
+  }
+  document.getElementById('profile-modal').classList.add('open');
+}
+function closeProfile() { document.getElementById('profile-modal').classList.remove('open'); }
+function updateProfileBanner() {
+  const p = getProfile();
+  const b = document.getElementById('no-profile-banner');
+  if (b) b.classList.toggle('visible', !p);
+}
+
+// ── FAVOURITES ──
+function getFavourites() {
+  try { return JSON.parse(localStorage.getItem('mealPlannerFavourites') || '[]'); } catch { return []; }
+}
+function saveFavourites(favs) {
+  localStorage.setItem('mealPlannerFavourites', JSON.stringify(favs));
+}
+function saveCurrentMeal() {
+  if (!currentMeal) return;
+  const favs = getFavourites();
+  const name = `${selectedMeal.charAt(0).toUpperCase() + selectedMeal.slice(1)} — ${new Date().toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })}`;
+  favs.unshift({
+    id: Date.now(),
+    name,
+    mealType: selectedMeal,
+    slots: currentMeal.slots,
+    reasoning: currentMeal.reasoning,
+    savedAt: new Date().toISOString(),
+  });
+  saveFavourites(favs);
+  const btn = document.getElementById('btn-save-fav');
+  btn.textContent = '✓ Saved!';
+  btn.classList.add('saved');
+  setTimeout(() => { btn.textContent = '♥ Save this meal'; btn.classList.remove('saved'); }, 2000);
+}
+function openFavourites() {
+  renderFavouritesList();
+  document.getElementById('fav-modal').classList.add('open');
+}
+function closeFavourites() { document.getElementById('fav-modal').classList.remove('open'); }
+function deleteFavourite(id) {
+  const favs = getFavourites().filter(f => f.id !== id);
+  saveFavourites(favs);
+  renderFavouritesList();
+}
+function renderFavouritesList() {
+  const favs = getFavourites();
+  const container = document.getElementById('fav-list-container');
+  if (!favs.length) {
+    container.innerHTML = `<div class="fav-empty"><div class="big">🍱</div><p>No saved meals yet.<br>Tap <strong>♥ Save this meal</strong> after a suggestion you love.</p></div>`;
+    return;
+  }
+  container.innerHTML = `<div class="fav-list">${favs.map(f => {
+    const foods = f.slots.map(s => s.name).join(', ');
+    const date = new Date(f.savedAt).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `<div class="fav-item">
+      <div class="fav-item-header">
+        <div class="fav-item-name">${f.name}</div>
+        <span class="fav-item-meta">${date}</span>
+        <button class="fav-delete" onclick="deleteFavourite(${f.id})" title="Remove">✕</button>
+      </div>
+      <div class="fav-item-foods">${foods}</div>
+      ${f.reasoning ? `<div style="font-size:0.75rem;color:var(--sage-dark);margin-top:6px;font-style:italic;line-height:1.5">${f.reasoning}</div>` : ''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── PREP MODAL ──
+function openPrepModal() {
+  if (!currentMeal) return;
+  document.getElementById('prep-modal').classList.add('open');
+  document.getElementById('prep-content-area').innerHTML = '<div class="prep-spinner"></div>';
+  fetchPrep();
+}
+function closePrepModal() { document.getElementById('prep-modal').classList.remove('open'); }
+
+async function fetchPrep() {
+  const ANTHROPIC_API_KEY = getApiKey();
+  const profile = getProfile();
+  const mealItems = currentMeal.slots.map(s => `${s.name} (${s.serving})`).join(', ');
+  const spiceText = buildSpiceText();
+
+  const prompt = `You are helping someone prepare a simple, healthy ${selectedMeal}. They are not a confident cook and want clear, fast instructions with no complicated techniques.
+
+Their meal today: ${mealItems}
+
+Important things to know about them:
+- No gallbladder — avoid adding any significant fat during cooking; dry heat, steaming, or a tiny spray of oil only
+- No sesame in any form (serious family allergy — never suggest it even as a garnish)
+- No spicy food
+- They like simple, clean flavours — salty, umami, depth and boldness without heat. Think Japanese and Korean minimalism — a few well-chosen seasonings rather than complicated sauces
+- They enjoy the idea of small separate components on a tray, like a bento box
+- Fermented and pickled components are welcome — suggest a quick 5-minute fridge pickle if it would complement this meal nicely
+
+Their actual spice cupboard — only suggest seasonings from this list, chosen sensibly for what suits the dish:
+${spiceText}
+
+Write simple preparation instructions in plain, friendly language. Use this format:
+
+[Meal name as a short poetic title]
+
+What you're making: [one sentence describing the dish appealingly]
+
+Steps:
+[numbered steps, each short and clear — maximum 8 steps total]
+
+Quick pickle option: [if applicable, suggest one quick 5-minute pickle that would go beautifully alongside — or say "not needed for this meal" if it doesn't fit]
+
+Flavour tip: [one specific seasoning suggestion using something from her actual spice list above that genuinely suits this dish — be specific, e.g. "a pinch of your Asian Simple mix stirred into the rice water" not just "add some seasoning"]
+
+Time: [realistic total time in minutes]
+
+Keep the whole response under 300 words. Warm, encouraging tone — not clinical.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 600,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const raw = data.content.map(b => b.text || '').join('');
+    const text = raw
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/^#{1,3}\s+(.+)$/gm, '<strong>$1</strong>');
+    document.getElementById('prep-content-area').innerHTML = `<div class="prep-content">${text}</div>`;
+  } catch (err) {
+    document.getElementById('prep-content-area').innerHTML = `<p style="color:var(--danger-red);font-size:0.85rem">Something went wrong loading the instructions. Please try again.</p>`;
+  }
+}
+
+// ── CATEGORY CONFIG ──
+const catConfig = {
+  grain:     { color: '#c9a84c22', border: '#c9a84c', icon: '🌾' },
+  protein:   { color: '#c4714a22', border: '#c4714a', icon: '🥩' },
+  vegetable: { color: '#7a9e7e22', border: '#7a9e7e', icon: '🥦' },
+  fruit:     { color: '#d4856a22', border: '#d4856a', icon: '🍓' },
+  dairy:     { color: '#7ab0c422', border: '#7ab0c4', icon: '🧀' },
+  condiment: { color: '#9a84c422', border: '#9a84c4', icon: '🫙' },
+  fat:       { color: '#c4a44a22', border: '#c4a44a', icon: '🫒' },
+  snack:     { color: '#c47a9a22', border: '#c47a9a', icon: '🍿' },
+  beverage:  { color: '#7ab0c422', border: '#7ab0c4', icon: '🥤' },
+  flavour:   { color: '#9a9a4a22', border: '#9a9a4a', icon: '✨' },
+};
+const safetyColor = { 'Safe': '#4a7c59', 'Caution': '#c4884a', 'Danger': '#b84040' };
+
+// ── CSV PARSER ──
+function parseCSV(text) {
+  // Strip BOM, normalise Windows line endings
+  const clean = text.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const lines = clean.trim().split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+  const headers = parseCSVLine(lines[0]);
+  return lines.slice(1).map(line => {
+    const vals = parseCSVLine(line);
+    const obj = {};
+    headers.forEach((h, i) => obj[h.trim()] = (vals[i] || '').trim());
+    return obj;
+  }).filter(r => r.Name && r.Name.trim());
+}
+function parseCSVLine(line) {
+  const result = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    if (line[i] === '"') { inQ = !inQ; continue; }
+    if (line[i] === ',' && !inQ) { result.push(cur); cur = ''; continue; }
+    cur += line[i];
+  }
+  result.push(cur);
+  return result;
+}
+
+// ── SETUP FLOW ──
+function showError(step, msg) {
+  const el = document.getElementById('error-' + step);
+  if (el) { el.style.display = 'block'; el.textContent = '⚠ ' + msg; }
+  console.error('Step ' + step + ' error:', msg);
+}
+
+
+function clearMessages(step) {
+  ['error-', 'debug-'].forEach(p => {
+    const el = document.getElementById(p + step);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+  });
+}
+function goToStep(n) {
+  [1,2,3].forEach(i => {
+    const s = document.getElementById('step-' + i);
+    if (s) s.style.display = i === n ? 'block' : 'none';
+    const dot = document.getElementById('dot-' + i);
+    if (dot) {
+      dot.classList.remove('active','done');
+      if (i < n) dot.classList.add('done');
+      if (i === n) dot.classList.add('active');
+    }
+  });
+}
+function submitApiKey() {
+  clearMessages(1);
+  const val = document.getElementById('setup-api-key').value.trim();
+
+  if (!val.startsWith('sk-ant-') || val.length < 20) {
+    showError(1, 'Key does not look right. It should start with sk-ant- and be quite long.');
+    return;
+  }
+  sessionApiKey = val;
+  const sidebar = document.getElementById('api-key-input');
+  if (sidebar) sidebar.value = val;
+
+  goToStep(2);
+}
+
+// ── FILE HANDLING ──
+document.getElementById('file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+
+  if (file) loadFile(file);
+});
+
+async function loadFile(file) {
+  clearMessages(2);
+  if (!file) { showError(2, 'No file received.'); return; }
+  const progress = document.getElementById('step2-progress');
+  if (progress) { progress.style.display = 'block'; progress.textContent = 'Reading file...'; }
+  const reader = new FileReader();
+  reader.onload = async e => {
+    let stage = 'parsing';
+    try {
+      if (progress) progress.textContent = 'Parsing CSV...';
+      const parsed = parseCSV(e.target.result);
+
+      if (!parsed.length) {
+        showError(2, 'No rows found in file: ' + file.name + ' (' + file.size + ' bytes)');
+        if (progress) progress.style.display = 'none';
+        return;
+      }
+      const needsCats = !parsed[0].Category;
+
+      if (needsCats) {
+        stage = 'categorising';
+        if (progress) progress.textContent = 'Categorising with AI... (~10 sec first time)';
+        allItems = await autoCategorise(parsed);
+      } else {
+        allItems = parsed;
+      }
+
+      const uncategorisedCount = allItems.filter(i => i.Category === 'uncategorised').length;
+      if (uncategorisedCount > 0 && needsCats) {
+        showError(2, 'Categorisation did not complete — ' + uncategorisedCount + ' items are uncategorised. Check the error above and try again.');
+        if (progress) progress.style.display = 'none';
+        return;
+      }
+      if (progress) progress.textContent = allItems.length + ' items ready ✓';
+      setTimeout(() => goToStep(3), 800);
+    } catch (err) {
+      showError(2, 'Failed at ' + stage + ': ' + err.message);
+      if (progress) progress.style.display = 'none';
+      console.error(err);
+    }
+  };
+  reader.onerror = () => showError(2, 'FileReader error: ' + (reader.error ? reader.error.message : 'unknown'));
+  reader.readAsText(file);
+}
+
+// ── CATEGORY CACHE ──
+function getCategoryCache() {
+  try { return JSON.parse(localStorage.getItem('mealPlannerCategoryCache') || '{}'); } catch { return {}; }
+}
+function saveCategoryCache(cache) {
+  localStorage.setItem('mealPlannerCategoryCache', JSON.stringify(cache));
+}
+
+// ── AUTO-CATEGORISE ──
+async function autoCategorise(items) {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    return items.map(item => ({
+      ...item,
+      Category: 'uncategorised',
+      MealType: 'universal',
+      CuisineTags: 'neutral',
+      Trigger: 'no'
+    }));
+  }
+
+  const cache = getCategoryCache();
+  const uncached = items.filter(item => !cache[item.Name]);
+  const cachedItems = items.filter(item => !!cache[item.Name]);
+
+  cachedItems.forEach(item => Object.assign(item, cache[item.Name]));
+
+  if (uncached.length > 0) {
+    const itemList = uncached.map(item =>
+      item.Name + ' | Fat: ' + item['Fat(g)'] + 'g | Cal: ' + item.Calories + ' | Safety: ' + item.Safety
+    ).join('\n');
+
+    const prompt = `You are categorising food items for a gallbladder-safe meal planner app. For each item, assign exactly these four fields.
+
+CATEGORY must be exactly one of: grain, protein, vegetable, fruit, dairy, fat, condiment, snack, beverage
+MEALTYPE is a comma-separated list from: breakfast, lunch, dinner, snack, universal
+CUISINETAGS is a comma-separated list from: western, asian, mediterranean, neutral
+TRIGGER is yes or no (yes = known gallbladder trigger e.g. high fat, spicy, fried, rich)
+
+Items to categorise:
+${itemList}
+
+Return ONLY a JSON array, no other text. Each object must have exactly these keys: name, category, mealType, cuisineTags, trigger
+Example: [{"name":"Cream of Wheat","category":"grain","mealType":"breakfast","cuisineTags":"western,neutral","trigger":"no"}]`;
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 6000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+
+      const data = await response.json();
+
+      const raw = data.content.map(b => b.text || '').join('');
+      const clean = raw.replace(/```json|```/g, '').trim();
+      const results = JSON.parse(clean);
+
+      const newCache = { ...cache };
+      results.forEach(r => {
+        const item = uncached.find(i => i.Name === r.name);
+        if (item) {
+          item.Category = r.category;
+          item.MealType = r.mealType;
+          item.CuisineTags = r.cuisineTags;
+          item.Trigger = r.trigger;
+          newCache[r.name] = {
+            Category: r.category,
+            MealType: r.mealType,
+            CuisineTags: r.cuisineTags,
+            Trigger: r.trigger
+          };
+        }
+      });
+
+      uncached.forEach(item => {
+        if (!item.Category) {
+          item.Category = 'uncategorised';
+          item.MealType = 'universal';
+          item.CuisineTags = 'neutral';
+          item.Trigger = 'no';
+        }
+      });
+
+      saveCategoryCache(newCache);
+    } catch (err) {
+      console.error('Auto-categorise failed:', err);
+      showError(2, 'Categorisation failed: ' + err.message);
+
+      uncached.forEach(item => {
+        item.Category = item.Category || 'uncategorised';
+        item.MealType = item.MealType || 'universal';
+        item.CuisineTags = item.CuisineTags || 'neutral';
+        item.Trigger = item.Trigger || 'no';
+      });
+    }
+  }
+
+  return items;
+}
+
+// ── SPICE FILE HANDLING ──
+document.getElementById('spice-file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+
+  if (file) loadSpiceFile(file);
+});
+function loadSpiceFile(file) {
+  clearMessages(3);
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      allSpices = parseCSV(e.target.result).filter(s => s.Status !== 'planned');
+
+      updateSpiceBadge();
+      setTimeout(() => initApp(), 600);
+    } catch(err) {
+      showError(3, 'Could not parse spice file: ' + err.message);
+    }
+  };
+  reader.onerror = () => showError(3, 'Could not read spice file.');
+  reader.readAsText(file);
+}
+function skipSpices() {
+
+  initApp();
+}
+function updateSpiceBadge() {
+  const badge = document.getElementById('spice-badge');
+  const count = document.getElementById('spice-count');
+  if (allSpices.length) {
+    badge.classList.add('visible');
+    count.textContent = allSpices.length;
+  } else {
+    badge.classList.remove('visible');
+  }
+}
+
+// ── BUILD SPICE TEXT FOR CLAUDE ──
+function buildSpiceText() {
+  if (!allSpices.length) return 'No spice inventory loaded.';
+  return allSpices.map(s => `${s.Name} (${s.Type}) — ${s.GoodFor}`).join('\n');
+}
+
+// ── INIT ──
+function initApp() {
+  document.getElementById('upload-section').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('header-sub').textContent = `${allItems.length} items loaded`;
+  document.getElementById('stat-total').textContent = allItems.length;
+  document.getElementById('stat-safe').textContent = allItems.filter(i => i.Safety === 'Safe').length;
+  document.getElementById('stat-caution').textContent = allItems.filter(i => i.Safety === 'Caution').length;
+  document.getElementById('stat-danger').textContent = allItems.filter(i => i.Safety === 'Danger').length;
+  renderTable(allItems);
+  updateProfileBanner();
+  loadSavedApiKey();
+  const p = getProfile();
+  if (!p) setTimeout(openProfile, 600);
+}
+
+// ── ON PAGE LOAD: always start at step 1, clear any old saved key ──
+(function() {
+  localStorage.removeItem('mealPlannerApiKey');
+})();
+
+// ── MEAL BUTTONS ──
+document.querySelectorAll('.meal-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.meal-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedMeal = btn.dataset.meal;
+  });
+});
+
+// ── HELPERS ──
+function isExpired(item) {
+  if (!item.BestBefore) return false;
+  const d = new Date(item.BestBefore);
+  return !isNaN(d) && d < today;
+}
+function isExpiringSoon(item) {
+  if (!item.BestBefore) return false;
+  const d = new Date(item.BestBefore);
+  const soon = new Date(); soon.setDate(soon.getDate() + 14);
+  return !isNaN(d) && d >= today && d < soon;
+}
+
+// ── BUILD PROFILE TEXT ──
+function buildProfileText(profile) {
+  if (!profile) return 'No personal profile provided.';
+  const conditionLabels = {
+    no_gallbladder: 'no gallbladder (cholecystectomy — fat digestion is continuous; meals must stay under 10g fat, fat spread across day)',
+    menopause: 'menopausal/post-menopausal (protein is critical for muscle preservation; insulin sensitivity reduced; calcium and anti-inflammatory foods important)',
+    heart: 'heart attack prevention (prioritise omega-3s, soluble fibre, potassium; strictly limit saturated fat and sodium)',
+    stroke: 'stroke prevention (limit sodium strictly; prioritise potassium-rich foods, fibre, anti-inflammatory foods)',
+    blood_pressure: 'high blood pressure (DASH principles: low sodium, high potassium, high fibre)',
+    cholesterol: 'managing cholesterol (soluble fibre key — oats, lentils, apples; limit saturated fat)',
+    diabetes_risk: 'blood sugar/diabetes risk (low glycaemic index foods; fibre slows glucose absorption; avoid refined carbs)',
+    weight_loss: 'weight management (high protein and fibre for satiety; food quality over calorie counting)',
+    bone_density: 'bone density/osteoporosis risk (calcium, magnesium, protein important)',
+  };
+  const conditions = (profile.conditions || []).map(c => conditionLabels[c] || c).join('\n- ');
+  return `Age: ${profile.age || 'not specified'} | Sex: ${profile.sex || 'not specified'} | Height: ${profile.height || 'not specified'} | Weight: ${profile.weight || 'not specified'}
+Health conditions:
+- ${conditions || 'none specified'}
+Additional notes: ${profile.notes || 'none'}`.trim();
+}
+
+// ── AI MEAL GENERATION ──
+async function generateMeal() {
+  const ANTHROPIC_API_KEY = getApiKey();
+  if (!ANTHROPIC_API_KEY) {
+    alert('Please enter your Anthropic API key in the sidebar first.\n\nIt looks like: sk-ant-api03-...\n\nIt will be saved automatically in your browser.');
+    return;
+  }
+  if (!allItems.length) { alert('Please load your inventory CSV first.'); return; }
+
+  const btn = document.getElementById('generate-btn');
+  btn.disabled = true;
+  btn.textContent = '✦ Thinking...';
+  document.getElementById('ai-thinking').classList.add('visible');
+  document.getElementById('plate-area').classList.remove('visible');
+  document.getElementById('ai-context').classList.remove('visible');
+
+  const profile = getProfile();
+  const profileText = buildProfileText(profile);
+  const available = allItems.filter(item => !isExpired(item) && item.Safety !== 'Danger');
+  const inventoryText = available.map(item =>
+    `${item.Name} | ${item.Category} | ${item.Serving} | ${item.Calories}cal | ${item['Fat(g)']}g fat | ${item['Fiber(g)']}g fibre | ${item['Protein(g)']}g protein | ${item['Sodium(mg)']}mg sodium | Safety: ${item.Safety}`
+  ).join('\n');
+
+  const avoidProtein = lastProteinUsed ? `IMPORTANT: The last suggestion used "${lastProteinUsed}" as the protein. Please choose a DIFFERENT protein source this time to give variety.` : '';
+  const spiceText = buildSpiceText();
+
+  const prompt = `You are a nutrition-aware meal planner helping a real person eat better and feel well. Here is everything about her:
+
+--- PERSONAL PROFILE ---
+${profileText}
+
+--- ABSOLUTE RULES (never break these) ---
+1. NEVER suggest anything containing sesame in any form — seeds, oil, paste, tahini. A family member has a life-threatening sesame allergy and sesame cannot be in the home.
+2. NEVER suggest spicy food of any kind.
+3. Only use items from the inventory below — never suggest items not listed.
+4. Keep total meal fat under 10g to protect her digestion without a gallbladder.
+
+--- VARIETY GUIDANCE ---
+${avoidProtein}
+Rotate protein sources across suggestions — egg whites, Greek yogurt, collagen peptides, lentils, tofu, cottage cheese, chicken are all options. Do not default to chicken every time.
+
+--- FLAVOUR PHILOSOPHY ---
+Suggest meals with clean, simple, distinct flavours — inspired by the minimalism of Japanese and Korean bento culture. A few bold, well-chosen seasonings are better than complicated sauces. Think: bright, clean, satisfying. Small components that work well together or eaten separately.
+
+--- FERMENTED FOODS ---
+If a fermented or pickled item is in the inventory (kimchi, red cabbage, etc.), consider including it as a small flavour component where appropriate — these are beneficial for gut health especially without a gallbladder.
+
+--- HER SPICE CUPBOARD ---
+She has these spices and seasoning blends available. Use them naturally in your reasoning — suggest them where they genuinely suit the dish. Use common sense: savoury spices on savoury things, warming spices on oats and drinks, never sesame, never spicy heat.
+${spiceText}
+
+--- AVAILABLE KITCHEN INVENTORY ---
+${inventoryText}
+
+--- NUTRITION SCIENCE TO APPLY ---
+- Protein 25-35g per main meal is critical for menopausal muscle preservation and satiety
+- Soluble fibre (oats, lentils, apples, raspberries) actively lowers cholesterol
+- Potassium-rich foods help manage blood pressure
+- Anti-inflammatory foods (berries, leafy greens) protect cardiovascular health
+- Low glycaemic index choices manage insulin sensitivity
+- Food quality over calorie counting — whole foods over processed
+
+--- TASK ---
+Suggest a complete ${selectedMeal} tray. Choose 4-5 items that work beautifully together as small bento-style components. Think about the whole picture — flavour, texture, nutrition, how she'll feel after eating it.
+
+Return ONLY valid JSON in this exact structure, no other text:
+{
+  "slots": [
+    {
+      "label": "role on the tray e.g. Main, Protein, Vegetable, Fruit, Flavour",
+      "icon": "one emoji",
+      "name": "exact item name from inventory",
+      "serving": "serving size from inventory",
+      "fat": number,
+      "calories": number,
+      "fiber": number,
+      "protein": number,
+      "sodium": number,
+      "safety": "Safe or Caution",
+      "category": "category from inventory"
+    }
+  ],
+  "reasoning": "2-3 sentences explaining this specific combination — mention her actual conditions, be specific about why each component earns its place"
+}`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || `API error ${response.status}`);
+    }
+
+    const data = await response.json();
+    const text = data.content.map(b => b.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const meal = JSON.parse(clean);
+
+    // Track protein for variety next time
+    const proteinSlot = meal.slots.find(s => s.category === 'protein' || s.label.toLowerCase().includes('protein'));
+    if (proteinSlot) lastProteinUsed = proteinSlot.name;
+
+    currentMeal = meal;
+    document.getElementById('ai-thinking').classList.remove('visible');
+    renderAIMeal(meal);
+
+  } catch (err) {
+    document.getElementById('ai-thinking').classList.remove('visible');
+    alert('Something went wrong:\n' + err.message + '\n\nCheck that your API key is correct and try again.');
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✦ Suggest a meal';
+  }
+}
+
+// ── RENDER MEAL ──
+function renderAIMeal(meal) {
+  document.getElementById('plate-area').classList.add('visible');
+  document.getElementById('plate-meal-label').textContent = selectedMeal;
+
+  // Reset save button
+  const saveBtn = document.getElementById('btn-save-fav');
+  saveBtn.textContent = '♥ Save this meal';
+  saveBtn.classList.remove('saved');
+
+  const container = document.getElementById('tray-cards');
+  container.innerHTML = '';
+
+  let totalCal = 0, totalFat = 0, totalFiber = 0, totalProtein = 0, totalSodium = 0;
+
+  meal.slots.forEach((slot, idx) => {
+    const isMain = idx === meal.slots.length - 1;
+    const cfg = catConfig[slot.category] || { color: '#eee', border: '#aaa', icon: '•' };
+    const badgeClass = slot.safety === 'Safe' ? 'safe-badge' : 'caution-badge';
+
+    totalCal += slot.calories || 0;
+    totalFat += slot.fat || 0;
+    totalFiber += slot.fiber || 0;
+    totalProtein += slot.protein || 0;
+    totalSodium += slot.sodium || 0;
+
+    const div = document.createElement('div');
+    div.className = 'bento-slot filled' + (isMain ? ' slot-main' : '');
+    div.style.background = cfg.color;
+    div.style.borderColor = cfg.border;
+    div.innerHTML = `
+      <span class="safety-badge ${badgeClass}">${slot.safety}</span>
+      <div class="slot-icon">${slot.icon}</div>
+      <div class="slot-label">${slot.label}</div>
+      <div class="slot-name">${slot.name}</div>
+      <div class="slot-serving">${slot.serving}</div>
+      <div class="slot-fat">${slot.fat}g fat</div>
+    `;
+    container.appendChild(div);
+  });
+
+  const fatOk = totalFat <= 10;
+  document.getElementById('meal-totals').innerHTML = `
+    <div class="total-item"><span class="val">${Math.round(totalCal)}</span><span class="lbl">Calories</span></div>
+    <div class="total-item"><span class="val ${fatOk ? 'fat-ok' : 'fat-warn'}">${totalFat.toFixed(1)}g</span><span class="lbl">Fat ${fatOk ? '✓' : '⚠'}</span></div>
+    <div class="total-item"><span class="val">${totalFiber.toFixed(1)}g</span><span class="lbl">Fiber</span></div>
+    <div class="total-item"><span class="val">${totalProtein.toFixed(1)}g</span><span class="lbl">Protein</span></div>
+    <div class="total-item"><span class="val ${totalSodium > 800 ? 'fat-warn' : ''}">${Math.round(totalSodium)}mg</span><span class="lbl">Sodium</span></div>
+    <div class="total-item"><span class="val" style="font-size:1rem">✦</span><span class="lbl">AI Picked</span></div>
+  `;
+
+  if (meal.reasoning) {
+    document.getElementById('ai-context-text').textContent = meal.reasoning;
+    document.getElementById('ai-context').classList.add('visible');
+  }
+}
+
+// ── TABLE ──
+function filterTable() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const cat = document.getElementById('cat-select').value;
+  const safety = document.getElementById('safety-select').value;
+  renderTable(allItems.filter(item => {
+    if (q && !item.Name.toLowerCase().includes(q)) return false;
+    if (cat && item.Category !== cat) return false;
+    if (safety && item.Safety !== safety) return false;
+    return true;
+  }));
+}
+function sortTable(col) {
+  if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const cat = document.getElementById('cat-select').value;
+  const safety = document.getElementById('safety-select').value;
+  let filtered = allItems.filter(item => {
+    if (q && !item.Name.toLowerCase().includes(q)) return false;
+    if (cat && item.Category !== cat) return false;
+    if (safety && item.Safety !== safety) return false;
+    return true;
+  });
+  filtered.sort((a, b) => {
+    let va = a[col] || '', vb = b[col] || '';
+    const na = parseFloat(va), nb = parseFloat(vb);
+    if (!isNaN(na) && !isNaN(nb)) return (na - nb) * sortDir;
+    return va.localeCompare(vb) * sortDir;
+  });
+  renderTable(filtered);
+}
+function renderTable(items) {
+  const tbody = document.getElementById('inv-body');
+  tbody.innerHTML = '';
+  const countEl = document.getElementById('inv-count');
+  if (countEl) countEl.textContent = `${items.length} items`;
+  if (!items.length) { document.getElementById('empty-state').style.display = 'block'; return; }
+  document.getElementById('empty-state').style.display = 'none';
+
+  items.forEach(item => {
+    const cfg = catConfig[item.Category] || { color: '#eee', border: '#aaa', icon: '•' };
+    const expired = isExpired(item);
+    const expiring = isExpiringSoon(item);
+    const tr = document.createElement('tr');
+    if (expired) tr.classList.add('expired-row');
+    const sColor = safetyColor[item.Safety] || '#aaa';
+    const bbDisplay = item.BestBefore
+      ? (expired ? `<span style="color:var(--danger-red);font-size:0.75rem">Expired ${item.BestBefore}</span>`
+        : expiring ? `<span style="color:var(--caution-amber);font-size:0.75rem">⚠ ${item.BestBefore}</span>`
+        : `<span style="font-size:0.75rem;color:var(--ink-faint)">${item.BestBefore}</span>`)
+      : '<span style="color:#ddd;font-size:0.75rem">—</span>';
+    tr.innerHTML = `
+      <td style="font-weight:500">${item.Name}</td>
+      <td><span class="cat-pill" style="background:${cfg.color};border:1px solid ${cfg.border};color:${cfg.border}">${cfg.icon} ${item.Category || '?'}</span></td>
+      <td style="color:var(--ink-soft)">${item.Serving}</td>
+      <td>${item.Calories || '—'}</td>
+      <td>${item['Fat(g)'] || '0'}g</td>
+      <td>${item['Fiber(g)'] || '0'}g</td>
+      <td>${item['Protein(g)'] || '0'}g</td>
+      <td><span class="safety-dot" style="background:${sColor}"></span>${item.Safety === 'Danger' ? 'High Fat' : item.Safety || '—'}</td>
+      <td style="font-size:0.75rem;color:var(--ink-faint)">${(item.MealType||'').replace(/,/g,' · ')}</td>
+      <td>${bbDisplay}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+</script>
+</body>
+</html>
