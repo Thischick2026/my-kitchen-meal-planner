@@ -6,9 +6,9 @@ An AI-powered meal planning app for people managing gallbladder removal and rela
 
 What it does
 
-Upload your food inventory as a CSV and Claude AI will automatically categorise your items, then suggest balanced meals tailored to your health profile â€” keeping each meal under 10g fat, the standard post-cholecystectomy limit.
+Upload your food inventory as a CSV and Claude AI will automatically categorise your items, then suggest balanced meals tailored to your health profile - keeping each meal under 10g fat, the standard post-cholecystectomy limit.
 
-- Asks for your Anthropic API key on startup â€” never saved, never stored
+- Asks for your Anthropic API key on startup - never saved, never stored
 - Upload your food inventory CSV and Claude categorises everything automatically, with results cached so you're not charged twice
 - Set up a health profile with your conditions (no gallbladder, menopause, heart health, cholesterol, blood sugar, bone density, weight management)
 - Choose breakfast, lunch, dinner or snack and get an AI meal suggestion drawn from your actual inventory
@@ -31,10 +31,10 @@ Screenshots
 
 Requirements
 
-- An Anthropic API key get one at [console.anthropic.com](https://console.anthropic.com)
-- A food inventory CSV use the included `sample_food_inventory.csv` to get started
-- A spice inventory CSV optional, use the included `sample_spice_inventory.csv`
-- Just open `meal_planner.html` in any browser, no installation, no server, no dependencies
+- An Anthropic API key - get one at [console.anthropic.com](https://console.anthropic.com)
+- A food inventory CSV - use the included `sample_food_inventory.csv` to get started
+- A spice inventory CSV - optional, use the included `sample_spice_inventory.csv`
+- Just open `meal_planner.html` in any browser - no installation, no server, no dependencies
 
 Getting started
 
@@ -47,6 +47,6 @@ Getting started
 
 Who this is for
 
-Anyone managing diet after gallbladder removal (cholecystectomy), especially people also navigating menopause, heart health, cholesterol, blood sugar, or bone density concerns. The app understands your specific conditions and reasons about them when choosing meals it doesn't just count calories.
+Anyone managing diet after gallbladder removal (cholecystectomy), especially people also navigating menopause, heart health, cholesterol, blood sugar, or bone density concerns. The app understands your specific conditions and reasons about them when choosing meals - it doesn't just count calories.
 
-Built with Claude AI and a lot of patience.
+Built with Claude AI and a lot of patience
