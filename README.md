@@ -47,6 +47,6 @@ Getting started
 
 Who this is for
 
-Anyone managing diet after gallbladder removal (cholecystectomy), especially people also navigating menopause, heart health, cholesterol, blood sugar, or bone density concerns. The app understands your specific conditions and reasons about them when choosing meals â€” it doesn't just count calories.
+Anyone managing diet after gallbladder removal (cholecystectomy), especially people also navigating menopause, heart health, cholesterol, blood sugar, or bone density concerns. The app understands your specific conditions and reasons about them when choosing meals it doesn't just count calories.
 
 Built with Claude AI and a lot of patience.
